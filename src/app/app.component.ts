@@ -2,15 +2,18 @@ import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { map } from 'rxjs/operators';
 
-export interface PostSchema{ title: string; content: string }
+export interface PostSchema {
+  title: string;
+  content: string;
+}
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
 })
-  
 export class AppComponent implements OnInit {
   loadedPosts = [];
+  isFetching = false;
 
   constructor(private http: HttpClient) {}
 
@@ -18,14 +21,24 @@ export class AppComponent implements OnInit {
     this.fetchPosts();
   }
 
-  onCreatePost(postData:PostSchema) {
+  onCreatePost(postData: PostSchema) {
     // Send Http request
     this.http
       .post(
         'https://learning-373c6-default-rtdb.firebaseio.com/posts.json',
         postData
       )
-      .subscribe(()=>{ this.fetchPosts();},(err)=>{console.log("something happened")},()=>{console.log("sent")});
+      .subscribe(
+        () => {
+          this.fetchPosts();
+        },
+        (err) => {
+          console.log('something happened');
+        },
+        () => {
+          console.log('sent');
+        }
+      );
   }
 
   onFetchPosts() {
@@ -38,6 +51,7 @@ export class AppComponent implements OnInit {
   }
 
   private fetchPosts() {
+    this.isFetching = true;
     this.http
       .get('https://learning-373c6-default-rtdb.firebaseio.com/posts.json')
       .pipe(
@@ -51,9 +65,18 @@ export class AppComponent implements OnInit {
           return postsArray;
         })
       )
-      .subscribe((posts) => {
-        // ...
-        this.loadedPosts = posts
-      });
+      .subscribe(
+        (posts) => {
+          // ...
+          this.isFetching = false;
+          this.loadedPosts = posts;
+        },
+        (err) => {
+          console.log('something happened on fetch');
+        },
+        () => {
+          console.log('fetch complete');
+        }
+      );
   }
 }
